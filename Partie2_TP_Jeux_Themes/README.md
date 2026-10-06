@@ -53,7 +53,7 @@ On garde le même nom de fichier et la même taille.
 |---|---|---|
 | `fond.png` | au moins 800 x 600 | fond (menu, jeu, fin) |
 | `sol.png` | 400 x 32 | sol, affiché en x2 |
-| `joueur.png` | 288 x 48 | 9 images de 32 x 48 : 0-3 gauche, 4 face, 5-8 droite |
+| `joueur.png` | environ 32 x 48 | une seule image, tournée vers la droite |
 | `bon.png` | libre (48 x 44 ici) | rapporte 10 points |
 | `mauvais.png` | libre (28 x 28 ici) | enlève une vie |
 
@@ -63,18 +63,18 @@ On garde le même nom de fichier et la même taille.
 |---|---|---|
 | `fond.png` | au moins 800 x 600 | décor |
 | `plateforme.png` | 400 x 32 | sol (en x2) et plateformes |
-| `joueur.png` | 288 x 48 | comme dans le jeu 1 |
+| `joueur.png` | environ 32 x 48 | une seule image, tournée vers la droite |
 | `bon.png` | libre (48 x 44 ici) | objet à ramasser, 10 points |
 | `mauvais.png` | libre (28 x 28 ici) | bombe |
 
-Si le joueur du thème est une seule image, quelques lignes changent : c'est expliqué dans chaque guide.
+Le joueur est une seule image dans les deux jeux, sans animation : `flipX` le retourne quand il va à gauche.
 
 ## Règles
 
 **Jeu 1.** Flèches gauche et droite. Un bon objet = 10 points, un mauvais = une vie en moins (3 vies).
 Plus on en attrape, plus il en tombe. À 0 vie on passe à l'écran de fin avec le score.
 
-**Jeu 2.** Flèches pour bouger, flèche haut pour sauter. 12 objets à ramasser, 10 points chacun.
+**Jeu 2.** Flèches pour bouger, flèche haut pour sauter. 10 objets à ramasser, 10 points chacun, sur un sol et quatre plateformes en zigzag.
 Une fois tous ramassés, ils reviennent et une bombe de plus rebondit partout. Toucher une bombe termine la partie.
 
 ## D'où vient chaque morceau
@@ -85,7 +85,8 @@ Une fois tous ramassés, ils reviennent et une bombe de plus rebondit partout. T
 | `this.scene.start('Game')` sur un bouton, `window.score` | TD3, parties 3 et 4 |
 | `config`, `preload`, `create`, `update` dans un fichier (jeu 2) | CM, étape 1 |
 | `staticGroup`, `physics.add.sprite`, `collider`, `overlap` | CM, étapes 3, 4 et 6 |
-| `anims.create`, `generateFrameNumbers`, `createCursorKeys`, `touching.down` | CM, étapes 4 et 5 |
+| `createCursorKeys`, `touching.down` | CM, étape 5 |
+| `flipX` pour tourner le joueur | TD3, étape 11 |
 | `physics.add.group`, `children.iterate`, `FloatBetween`, `disableBody` | CM, étape 6 |
 | `countActive`, `enableBody`, bombes, `hitBomb`, `physics.pause`, `setTint` | TD1, partie 3 |
 | `add.text`, `setText` | TD1, partie 3 |
@@ -95,6 +96,7 @@ Une fois tous ramassés, ils reviennent et une bombe de plus rebondit partout. T
 Écarts avec le cours, volontaires :
 
 - Jeu 2 : le CM met `player.body.setGravityY(300)` en plus de la gravité de la config, et un saut de `-330`. Avec les deux, le joueur ne saute que de 90 pixels et n'atteint aucune plateforme. Il n'y a donc pas de `setGravityY` sur le joueur et le saut est de `-350`.
+- Jeu 2 : les plateformes ne sont pas à la place de celles du CM (sol + 4 plateformes en zigzag), et il y a 10 objets au lieu de 12.
 - Jeu 2 : le TD1 écrit `bomb.allowGravity = false;`. Cette ligne ne change rien telle quelle, on écrit `bomb.body.allowGravity = false;`.
 - Jeu 2 : `scene: { key: 'jeu', ... }` dans la config, pour pouvoir relancer la partie avec `this.scene.start('jeu')` (même fonction que dans le TD3).
 

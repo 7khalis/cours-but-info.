@@ -1,8 +1,8 @@
 # Jeu 2 : Platformer
 
-Un personnage saute de plateforme en plateforme pour ramasser douze objets. Quand tout est ramassé, les objets reviennent et une bombe apparait. Une bombe touchée met fin à la partie. Le score augmente de 10 à chaque objet.
+Un personnage saute de plateforme en plateforme pour ramasser dix objets. Quand tout est ramassé, les objets reviennent et une bombe apparait. Une bombe touchée met fin à la partie. Le score augmente de 10 à chaque objet. Le personnage est une seule image, sans animation.
 
-C'est le jeu du CM (étapes 1 à 6) et du TD1 : tout tient dans un seul fichier JavaScript, avec les fonctions `preload`, `create` et `update`.
+C'est le jeu du CM (étapes 1 à 6) et du TD1, avec les plateformes placées autrement : tout tient dans un seul fichier JavaScript, avec les fonctions `preload`, `create` et `update`.
 
 Ce guide se suit dans l'ordre. Après chaque étape il y a un test : si tu ne vois pas ce qui est annoncé, ne passe pas à la suite.
 
@@ -16,7 +16,7 @@ Pour un nouveau thème (dauphin, noël, rocher, voiture, lunettes...), seules ce
 |---|---|---|---|
 | `fond.png` | au moins 800 x 600 | décor | paysage lié au mot |
 | `plateforme.png` | exactement 400 x 32 | le sol (affiché en double largeur) et les trois plateformes | herbe, glace, nuage, pierre |
-| `joueur.png` | 288 x 48, 9 cases de 32 x 48 | le personnage | voir plus bas |
+| `joueur.png` | environ 32 x 48 | le personnage, une seule image | personnage ou objet du thème, tourné vers la droite |
 | `bon.png` | environ 40 x 40 | objet à ramasser, 10 points | un élément du thème |
 | `mauvais.png` | environ 30 x 30 | la bombe | un intrus du thème |
 
@@ -27,10 +27,13 @@ Pour les trouver :
 3. Redimensionne-la à la taille du tableau avec un site de redimensionnement d'image ou avec Paint (Redimensionner, en pixels, sans conserver les proportions si besoin).
 4. Renomme-la avec le nom du tableau.
 
-### Le joueur : deux possibilités
+### Le joueur : une seule image
 
-- **Garder le personnage du cours** (`dude.png` du TD1, renommé `joueur.png`). Rien à changer dans le code. C'est le plus rapide.
-- **Mettre une seule image du thème** (par exemple un dauphin de 32 x 48). Il faut alors changer quelques lignes, elles sont indiquées dans l'encadré « Joueur avec une seule image » à la fin de l'étape 6.
+Le joueur est une seule image, sans animation. Trois conseils :
+
+- Taille : environ 32 x 48 pixels. Phaser utilise la taille de l'image comme zone de collision : une image trop grande donne un joueur énorme qui ne passe plus entre les plateformes.
+- Orientation : l'image doit regarder vers la droite. Quand le joueur va à gauche, le code retourne l'image avec `flipX` (TD3).
+- Fond transparent, comme pour les autres images.
 
 ### Les fichiers à récupérer sur le réseau
 
@@ -149,7 +152,7 @@ function preload() {
     this.load.image('plateforme', 'dist/assets/img/plateforme.png');
     this.load.image('bon', 'dist/assets/img/bon.png');
     this.load.image('mauvais', 'dist/assets/img/mauvais.png');
-    this.load.spritesheet('joueur', 'dist/assets/img/joueur.png', { frameWidth: 32, frameHeight: 48 });
+    this.load.image('joueur', 'dist/assets/img/joueur.png');
 }
 ```
 
@@ -170,13 +173,24 @@ function create() {
     // le sol et les plateformes
     platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, 'plateforme').setScale(2).refreshBody();
-    platforms.create(600, 400, 'plateforme');
-    platforms.create(50, 250, 'plateforme');
-    platforms.create(750, 220, 'plateforme');
+    platforms.create(650, 450, 'plateforme');
+    platforms.create(150, 340, 'plateforme');
+    platforms.create(600, 230, 'plateforme');
+    platforms.create(100, 120, 'plateforme');
 }
 ```
 
-Le sol utilise la même image, agrandie deux fois pour couvrir toute la largeur.
+Le sol utilise la même image, agrandie deux fois pour couvrir toute la largeur. Les quatre autres plateformes forment un zigzag : une à droite, une à gauche, une à droite, une à gauche, de plus en plus haut.
+
+| Plateforme | x | y |
+|---|---|---|
+| sol | 400 | 568 |
+| 1 | 650 | 450 |
+| 2 | 150 | 340 |
+| 3 | 600 | 230 |
+| 4 | 100 | 120 |
+
+`x` et `y` sont les coordonnées du centre de l'image. Pour déplacer une plateforme, change ces deux nombres. Entre deux plateformes, ne dépasse pas environ 180 pixels de hauteur, sinon le saut ne suffit plus.
 
 **Test.** Le fond, le sol et trois plateformes sont visibles.
 
@@ -186,31 +200,13 @@ CM, étape 4. Dans `create`, à la suite de ce qui existe :
 
 ```js
 // le joueur
-player = this.physics.add.sprite(100, 450, 'joueur');
+player = this.physics.add.sprite(400, 450, 'joueur');
 player.setBounce(0.2);
 player.setCollideWorldBounds(true);
 this.physics.add.collider(player, platforms);
-
-this.anims.create({
-    key: 'left',
-    frames: this.anims.generateFrameNumbers('joueur', { start: 0, end: 3 }),
-    frameRate: 10,
-    repeat: -1
-});
-this.anims.create({
-    key: 'turn',
-    frames: [{ key: 'joueur', frame: 4 }],
-    frameRate: 20
-});
-this.anims.create({
-    key: 'right',
-    frames: this.anims.generateFrameNumbers('joueur', { start: 5, end: 8 }),
-    frameRate: 10,
-    repeat: -1
-});
 ```
 
-Les cases 0 à 3 de l'image sont la marche vers la gauche, la 4 est le personnage de face, les 5 à 8 la marche vers la droite. `repeat: -1` répète l'animation sans fin.
+Le joueur est un sprite à physique dynamique : la gravité s'applique, il rebondit un peu (`setBounce`) et ne sort pas de l'écran (`setCollideWorldBounds`). Le `collider` l'empêche de traverser les plateformes.
 
 Le CM ajoute aussi `player.body.setGravityY(300)`. On ne le met pas ici : avec cette gravité en plus de celle de la config, le saut n'est pas assez haut pour atteindre les plateformes.
 
@@ -234,13 +230,12 @@ function update() {
 
     if (cursors.left.isDown) {
         player.setVelocityX(-160);
-        player.anims.play('left', true);
+        player.flipX = true;
     } else if (cursors.right.isDown) {
         player.setVelocityX(160);
-        player.anims.play('right', true);
+        player.flipX = false;
     } else {
         player.setVelocityX(0);
-        player.anims.play('turn');
     }
 
     // saut : seulement si le joueur touche le sol
@@ -250,34 +245,20 @@ function update() {
 }
 ```
 
-Le `if (gameOver)` du début arrête le contrôle du joueur quand la partie est finie. `gameOver` est une variable déclarée à l'étape 2 et mise à `false` dans `create`.
+Le `if (gameOver)` du début arrête le contrôle du joueur quand la partie est finie. `gameOver` est une variable déclarée à l'étape 2 et mise à `false` dans `create`. `flipX = true` retourne l'image pour regarder à gauche, `false` la remet à droite.
 
-**Test.** Flèches gauche et droite pour avancer, flèche haut pour sauter. Le joueur peut monter sur la première plateforme, puis sur les autres.
-
-### Joueur avec une seule image
-
-Si ton `joueur.png` est une seule image (pas 9 cases), change ceci :
-
-1. Dans `preload`, remplace la ligne `this.load.spritesheet(...)` par :
-   ```js
-   this.load.image('joueur', 'dist/assets/img/joueur.png');
-   ```
-2. Dans `create`, supprime les trois blocs `this.anims.create({ ... });`.
-3. Dans `update`, supprime les trois lignes `player.anims.play(...)`.
-4. Plus bas (étape 10), supprime aussi la ligne `player.anims.play('turn');` de `hitBomb`.
-
-Le reste ne change pas.
+**Test.** Flèches gauche et droite pour avancer, flèche haut pour sauter. Le joueur peut monter sur la première plateforme, puis sur les autres, jusqu'en haut.
 
 ## Étape 7 : les objets à ramasser
 
-CM, étape 6. Dans `create`, à la suite. Le groupe contient 12 objets espacés de 70 pixels. Chacun a un rebond différent, entre 0,4 et 0,8.
+CM, étape 6. Dans `create`, à la suite. Le groupe contient 10 objets espacés de 80 pixels. Chacun a un rebond différent, entre 0,4 et 0,8.
 
 ```js
-// les objets à récupérer : 12 objets espacés de 70 pixels
+// les objets à récupérer : 10 objets espacés de 80 pixels
 stars = this.physics.add.group({
     key: 'bon',
-    repeat: 11,
-    setXY: { x: 12, y: 0, stepX: 70 }
+    repeat: 9,
+    setXY: { x: 40, y: 0, stepX: 80 }
 });
 
 stars.children.iterate(function (child) {
@@ -296,7 +277,7 @@ function collectStar(player, star) {
 }
 ```
 
-**Test.** Douze objets tombent et rebondissent sur les plateformes. Le joueur les fait disparaitre en les touchant.
+**Test.** Dix objets tombent et rebondissent sur les plateformes. Le joueur les fait disparaitre en les touchant.
 
 ## Étape 8 : le score
 
@@ -359,7 +340,7 @@ function hitBomb(player, bomb) {
 }
 ```
 
-**Test.** Après le 12e objet, les objets reviennent en haut et une bombe se met à rebondir partout. Une bombe de plus à chaque tour.
+**Test.** Après le 10e objet, les objets reviennent en haut et une bombe se met à rebondir partout. Une bombe de plus à chaque tour.
 
 ## Étape 10 : la fin de partie
 
@@ -369,7 +350,6 @@ TD1, partie 3. Remplace la fonction `hitBomb` vide. Le texte « Rejouer » est u
 function hitBomb(player, bomb) {
     this.physics.pause();          // physique en pause
     player.setTint(0xff0000);      // le joueur devient rouge
-    player.anims.play('turn');
     gameOver = true;               // on arrête le jeu à l'aide d'un boolean
 
     this.add.text(400, 230, 'Perdu', { fontFamily: 'Georgia', fontSize: '80px', fill: '#000' })
@@ -502,7 +482,7 @@ function preload() {
     this.load.image('plateforme', 'dist/assets/img/plateforme.png');
     this.load.image('bon', 'dist/assets/img/bon.png');
     this.load.image('mauvais', 'dist/assets/img/mauvais.png');
-    this.load.spritesheet('joueur', 'dist/assets/img/joueur.png', { frameWidth: 32, frameHeight: 48 });
+    this.load.image('joueur', 'dist/assets/img/joueur.png');
 
     this.load.audio('sonBon', 'dist/assets/sounds/bon.mp3');
     this.load.audio('sonMauvais', 'dist/assets/sounds/mauvais.mp3');
@@ -518,41 +498,24 @@ function create() {
     // le sol et les plateformes
     platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, 'plateforme').setScale(2).refreshBody();
-    platforms.create(600, 400, 'plateforme');
-    platforms.create(50, 250, 'plateforme');
-    platforms.create(750, 220, 'plateforme');
+    platforms.create(650, 450, 'plateforme');
+    platforms.create(150, 340, 'plateforme');
+    platforms.create(600, 230, 'plateforme');
+    platforms.create(100, 120, 'plateforme');
 
     // le joueur
-    player = this.physics.add.sprite(100, 450, 'joueur');
+    player = this.physics.add.sprite(400, 450, 'joueur');
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
     this.physics.add.collider(player, platforms);
 
-    this.anims.create({
-        key: 'left',
-        frames: this.anims.generateFrameNumbers('joueur', { start: 0, end: 3 }),
-        frameRate: 10,
-        repeat: -1
-    });
-    this.anims.create({
-        key: 'turn',
-        frames: [{ key: 'joueur', frame: 4 }],
-        frameRate: 20
-    });
-    this.anims.create({
-        key: 'right',
-        frames: this.anims.generateFrameNumbers('joueur', { start: 5, end: 8 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
     cursors = this.input.keyboard.createCursorKeys();
 
-    // les objets à récupérer : 12 objets espacés de 70 pixels
+    // les objets à récupérer : 10 objets espacés de 80 pixels
     stars = this.physics.add.group({
         key: 'bon',
-        repeat: 11,
-        setXY: { x: 12, y: 0, stepX: 70 }
+        repeat: 9,
+        setXY: { x: 40, y: 0, stepX: 80 }
     });
 
     stars.children.iterate(function (child) {
@@ -581,13 +544,12 @@ function update() {
 
     if (cursors.left.isDown) {
         player.setVelocityX(-160);
-        player.anims.play('left', true);
+        player.flipX = true;
     } else if (cursors.right.isDown) {
         player.setVelocityX(160);
-        player.anims.play('right', true);
+        player.flipX = false;
     } else {
         player.setVelocityX(0);
-        player.anims.play('turn');
     }
 
     // saut : seulement si le joueur touche le sol
@@ -623,7 +585,6 @@ function collectStar(player, star) {
 function hitBomb(player, bomb) {
     this.physics.pause();          // physique en pause
     player.setTint(0xff0000);      // le joueur devient rouge
-    player.anims.play('turn');
     gameOver = true;               // on arrête le jeu à l'aide d'un boolean
     sonMauvais.play();
 

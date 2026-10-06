@@ -35,7 +35,7 @@ function preload() {
     this.load.image('plateforme', 'dist/assets/img/plateforme.png');
     this.load.image('bon', 'dist/assets/img/bon.png');
     this.load.image('mauvais', 'dist/assets/img/mauvais.png');
-    this.load.spritesheet('joueur', 'dist/assets/img/joueur.png', { frameWidth: 32, frameHeight: 48 });
+    this.load.image('joueur', 'dist/assets/img/joueur.png');
 
     this.load.audio('sonBon', 'dist/assets/sounds/bon.mp3');
     this.load.audio('sonMauvais', 'dist/assets/sounds/mauvais.mp3');
@@ -51,41 +51,24 @@ function create() {
     // le sol et les plateformes
     platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, 'plateforme').setScale(2).refreshBody();
-    platforms.create(600, 400, 'plateforme');
-    platforms.create(50, 250, 'plateforme');
-    platforms.create(750, 220, 'plateforme');
+    platforms.create(650, 450, 'plateforme');
+    platforms.create(150, 340, 'plateforme');
+    platforms.create(600, 230, 'plateforme');
+    platforms.create(100, 120, 'plateforme');
 
     // le joueur
-    player = this.physics.add.sprite(100, 450, 'joueur');
+    player = this.physics.add.sprite(400, 450, 'joueur');
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
     this.physics.add.collider(player, platforms);
 
-    this.anims.create({
-        key: 'left',
-        frames: this.anims.generateFrameNumbers('joueur', { start: 0, end: 3 }),
-        frameRate: 10,
-        repeat: -1
-    });
-    this.anims.create({
-        key: 'turn',
-        frames: [{ key: 'joueur', frame: 4 }],
-        frameRate: 20
-    });
-    this.anims.create({
-        key: 'right',
-        frames: this.anims.generateFrameNumbers('joueur', { start: 5, end: 8 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
     cursors = this.input.keyboard.createCursorKeys();
 
-    // les objets à récupérer : 12 objets espacés de 70 pixels
+    // les objets à récupérer : 10 objets espacés de 80 pixels
     stars = this.physics.add.group({
         key: 'bon',
-        repeat: 11,
-        setXY: { x: 12, y: 0, stepX: 70 }
+        repeat: 9,
+        setXY: { x: 40, y: 0, stepX: 80 }
     });
 
     stars.children.iterate(function (child) {
@@ -114,13 +97,12 @@ function update() {
 
     if (cursors.left.isDown) {
         player.setVelocityX(-160);
-        player.anims.play('left', true);
+        player.flipX = true;
     } else if (cursors.right.isDown) {
         player.setVelocityX(160);
-        player.anims.play('right', true);
+        player.flipX = false;
     } else {
         player.setVelocityX(0);
-        player.anims.play('turn');
     }
 
     // saut : seulement si le joueur touche le sol
@@ -156,7 +138,6 @@ function collectStar(player, star) {
 function hitBomb(player, bomb) {
     this.physics.pause();          // physique en pause
     player.setTint(0xff0000);      // le joueur devient rouge
-    player.anims.play('turn');
     gameOver = true;               // on arrête le jeu à l'aide d'un boolean
     sonMauvais.play();
 

@@ -1,6 +1,6 @@
 # Jeu 1 : Attrape
 
-Des objets tombent du ciel. Le bon objet donne 10 points, le mauvais enlève une vie (3 vies). Le joueur se déplace en bas avec les flèches gauche et droite. Le jeu a trois écrans : menu, partie, fin.
+Des objets tombent du ciel. Le bon objet donne 10 points, le mauvais enlève une vie (3 vies). Le joueur se déplace en bas avec les flèches gauche et droite. Le jeu a trois écrans : menu, partie, fin. Le joueur est une seule image.
 
 Ce guide se suit dans l'ordre. Après chaque étape il y a un test : si tu ne vois pas ce qui est annoncé, ne passe pas à la suite.
 
@@ -19,7 +19,7 @@ Pour un nouveau thème (dauphin, noël, rocher, voiture, lunettes...), seules ce
 |---|---|---|---|
 | `fond.png` | au moins 800 x 600 | fond de tous les écrans | décor lié au mot |
 | `sol.png` | exactement 400 x 32 | bande en bas, affichée en double largeur | herbe, sable, glace, route |
-| `joueur.png` | 288 x 48, 9 cases de 32 x 48 | le personnage | voir plus bas |
+| `joueur.png` | environ 32 x 48 | le personnage, une seule image | personnage ou objet du thème, tourné vers la droite |
 | `bon.png` | environ 40 x 40 | rapporte 10 points | un élément du thème |
 | `mauvais.png` | environ 30 x 30 | enlève une vie | un intrus du thème |
 
@@ -30,10 +30,13 @@ Pour les trouver :
 3. Redimensionne-la à la taille du tableau avec un site de redimensionnement d'image ou avec Paint (Redimensionner, en pixels, sans conserver les proportions si besoin).
 4. Renomme-la avec le nom du tableau.
 
-### Le joueur : deux possibilités
+### Le joueur : une seule image
 
-- **Garder le personnage du cours** (`dude.png` du TD1, renommé `joueur.png`). Rien à changer dans le code. C'est le plus rapide.
-- **Mettre une seule image du thème** (par exemple un dauphin de 32 x 48). Il faut alors changer quelques lignes, elles sont indiquées dans l'encadré « Joueur avec une seule image » à la fin de l'étape 7.
+Le joueur est une seule image, sans animation. Trois conseils :
+
+- Taille : environ 32 x 48 pixels, de la même taille que celle prévue dans le tableau. Phaser utilise la taille de l'image comme zone de collision : une image trop grande donne un joueur énorme.
+- Orientation : l'image doit regarder vers la droite. Quand le joueur va à gauche, le code retourne l'image avec `flipX` (TD3).
+- Fond transparent, comme pour les autres images.
 
 ### Les fichiers à récupérer sur le réseau
 
@@ -223,13 +226,13 @@ Le sol est un groupe statique : il ne bouge pas et la gravité ne l'affecte pas 
 
 ## Étape 7 : le joueur
 
-Dans `preload()`, ajoute le chargement du personnage (CM, étape 2) :
+Dans `preload()`, ajoute le chargement de l'image du joueur :
 
 ```js
-this.load.spritesheet('joueur', 'dist/assets/img/joueur.png', { frameWidth: 32, frameHeight: 48 });
+this.load.image('joueur', 'dist/assets/img/joueur.png');
 ```
 
-Dans `create()`, à la suite :
+Dans `create()`, à la suite du sol :
 
 ```js
 // le joueur
@@ -238,28 +241,10 @@ this.player.setBounce(0.2);
 this.player.setCollideWorldBounds(true);
 this.physics.add.collider(this.player, this.platforms);
 
-this.anims.create({
-    key: 'left',
-    frames: this.anims.generateFrameNumbers('joueur', { start: 0, end: 3 }),
-    frameRate: 10,
-    repeat: -1
-});
-this.anims.create({
-    key: 'turn',
-    frames: [{ key: 'joueur', frame: 4 }],
-    frameRate: 20
-});
-this.anims.create({
-    key: 'right',
-    frames: this.anims.generateFrameNumbers('joueur', { start: 5, end: 8 }),
-    frameRate: 10,
-    repeat: -1
-});
-
 this.cursors = this.input.keyboard.createCursorKeys();
 ```
 
-Les cases 0 à 3 de l'image sont la marche vers la gauche, la 4 est le personnage de face, les 5 à 8 la marche vers la droite.
+Le joueur est un sprite à physique dynamique : la gravité s'applique, il rebondit un peu (`setBounce`) et ne sort pas de l'écran (`setCollideWorldBounds`). Le `collider` l'empêche de traverser le sol.
 
 Dans `update(time, delta)`, qui tourne environ 60 fois par seconde (CM, étape 5) :
 
@@ -267,30 +252,18 @@ Dans `update(time, delta)`, qui tourne environ 60 fois par seconde (CM, étape 5
 // déplacement du joueur
 if (this.cursors.left.isDown) {
     this.player.setVelocityX(-300);
-    this.player.anims.play('left', true);
+    this.player.flipX = true;
 } else if (this.cursors.right.isDown) {
     this.player.setVelocityX(300);
-    this.player.anims.play('right', true);
+    this.player.flipX = false;
 } else {
     this.player.setVelocityX(0);
-    this.player.anims.play('turn');
 }
 ```
 
-**Test.** Le joueur tombe sur le sol et se déplace à gauche et à droite en s'animant. Il ne sort pas de l'écran.
+`flipX = true` retourne l'image pour regarder à gauche, `false` la remet à droite.
 
-### Joueur avec une seule image
-
-Si ton `joueur.png` est une seule image (pas 9 cases), change ceci :
-
-1. Dans `preload()`, remplace la ligne `this.load.spritesheet(...)` par :
-   ```js
-   this.load.image('joueur', 'dist/assets/img/joueur.png');
-   ```
-2. Dans `create()`, supprime les trois blocs `this.anims.create({ ... });`.
-3. Dans `update()`, supprime les trois lignes `this.player.anims.play(...)`.
-
-Le reste ne change pas.
+**Test.** Le joueur tombe sur le sol et se déplace à gauche et à droite. Il se retourne selon la direction et ne sort pas de l'écran.
 
 ## Étape 8 : les objets qui tombent
 
@@ -612,7 +585,7 @@ class Game extends Phaser.Scene {
         this.load.image('sol', 'dist/assets/img/sol.png');
         this.load.image('bon', 'dist/assets/img/bon.png');
         this.load.image('mauvais', 'dist/assets/img/mauvais.png');
-        this.load.spritesheet('joueur', 'dist/assets/img/joueur.png', { frameWidth: 32, frameHeight: 48 });
+        this.load.image('joueur', 'dist/assets/img/joueur.png');
 
         this.load.audio('sonBon', 'dist/assets/sounds/bon.mp3');
         this.load.audio('sonMauvais', 'dist/assets/sounds/mauvais.mp3');
@@ -636,24 +609,6 @@ class Game extends Phaser.Scene {
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
         this.physics.add.collider(this.player, this.platforms);
-
-        this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('joueur', { start: 0, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: 'turn',
-            frames: [{ key: 'joueur', frame: 4 }],
-            frameRate: 20
-        });
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('joueur', { start: 5, end: 8 }),
-            frameRate: 10,
-            repeat: -1
-        });
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -683,13 +638,12 @@ class Game extends Phaser.Scene {
         // déplacement du joueur
         if (this.cursors.left.isDown) {
             this.player.setVelocityX(-300);
-            this.player.anims.play('left', true);
+            this.player.flipX = true;
         } else if (this.cursors.right.isDown) {
             this.player.setVelocityX(300);
-            this.player.anims.play('right', true);
+            this.player.flipX = false;
         } else {
             this.player.setVelocityX(0);
-            this.player.anims.play('turn');
         }
 
         // on fait tomber un nouvel objet de temps en temps

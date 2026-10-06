@@ -8,7 +8,7 @@ class Game extends Phaser.Scene {
         this.load.image('sol', 'dist/assets/img/sol.png');
         this.load.image('bon', 'dist/assets/img/bon.png');
         this.load.image('mauvais', 'dist/assets/img/mauvais.png');
-        this.load.spritesheet('joueur', 'dist/assets/img/joueur.png', { frameWidth: 32, frameHeight: 48 });
+        this.load.image('joueur', 'dist/assets/img/joueur.png');
 
         this.load.audio('sonBon', 'dist/assets/sounds/bon.mp3');
         this.load.audio('sonMauvais', 'dist/assets/sounds/mauvais.mp3');
@@ -32,24 +32,6 @@ class Game extends Phaser.Scene {
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
         this.physics.add.collider(this.player, this.platforms);
-
-        this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('joueur', { start: 0, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: 'turn',
-            frames: [{ key: 'joueur', frame: 4 }],
-            frameRate: 20
-        });
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('joueur', { start: 5, end: 8 }),
-            frameRate: 10,
-            repeat: -1
-        });
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -79,13 +61,12 @@ class Game extends Phaser.Scene {
         // déplacement du joueur
         if (this.cursors.left.isDown) {
             this.player.setVelocityX(-300);
-            this.player.anims.play('left', true);
+            this.player.flipX = true;
         } else if (this.cursors.right.isDown) {
             this.player.setVelocityX(300);
-            this.player.anims.play('right', true);
+            this.player.flipX = false;
         } else {
             this.player.setVelocityX(0);
-            this.player.anims.play('turn');
         }
 
         // on fait tomber un nouvel objet de temps en temps
